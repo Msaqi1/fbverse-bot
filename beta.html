@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FBVerse Bot — Official Beta Testing Lab & Preview Channel</title>
+  <meta name="description" content="Official Beta Test Channel for FBVerse Bot v3.7.17-beta. Verify experimental bug fixes for Marketplace Location and Multi-Browser concurrency.">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(17, 24, 39, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-border-glow: rgba(99, 102, 241, 0.35);
+      --primary: #6366f1;
+      --primary-light: #818cf8;
+      --primary-dark: #4f46e5;
+      --secondary: #8b5cf6;
+      --accent: #06b6d4;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      line-height: 1.6;
+      overflow-x: hidden;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    /* Ambient Glow Backgrounds */
+    .glow-top {
+      position: absolute;
+      top: -150px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 700px;
+      height: 450px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.22) 0%, rgba(139, 92, 246, 0.12) 50%, transparent 80%);
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .glow-bottom {
+      position: fixed;
+      bottom: -150px;
+      right: 10%;
+      width: 600px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.15) 0%, transparent 70%);
+      filter: blur(90px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Header & Badges */
+    header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .badge-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      border-radius: 9999px;
+      padding: 6px 18px;
+      margin-bottom: 20px;
+    }
+
+    .pulse-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--warning);
+      box-shadow: 0 0 10px var(--warning);
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.3); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+
+    .badge-text {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #fbbf24;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, #818cf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 14px;
+    }
+
+    p.subtitle {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 680px;
+      margin: 0 auto 28px;
+    }
+
+    /* Warning Callout */
+    .alert-banner {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: var(--radius);
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 44px;
+      text-align: left;
+    }
+
+    .alert-icon {
+      font-size: 1.6rem;
+      flex-shrink: 0;
+    }
+
+    .alert-content h4 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fcd34d;
+      margin-bottom: 3px;
+    }
+
+    .alert-content p {
+      font-size: 0.92rem;
+      color: #fde68a;
+      line-height: 1.5;
+    }
+
+    /* Grid of Download Cards */
+    .download-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      margin-bottom: 48px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 28px;
+      position: relative;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .card:hover {
+      border-color: var(--card-border-glow);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .card.primary-card {
+      border-color: rgba(99, 102, 241, 0.45);
+      background: linear-gradient(180deg, rgba(30, 27, 75, 0.5) 0%, rgba(17, 24, 39, 0.7) 100%);
+    }
+
+    .card-badge {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      background: rgba(99, 102, 241, 0.2);
+      border: 1px solid var(--primary);
+      color: #c7d2fe;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      text-transform: uppercase;
+    }
+
+    .card-icon {
+      font-size: 2.2rem;
+      margin-bottom: 16px;
+    }
+
+    .card h3 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .card p.desc {
+      font-size: 0.94rem;
+      color: var(--text-muted);
+      margin-bottom: 22px;
+      flex-grow: 1;
+    }
+
+    .file-meta {
+      display: flex;
+      gap: 16px;
+      font-size: 0.82rem;
+      color: #94a3b8;
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 20px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 13px 22px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      color: #ffffff;
+      border: none;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, var(--primary-light) 0%, #9061f9 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.06);
+      color: #e2e8f0;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    /* Checklist & Objectives */
+    .section-title {
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .test-checklist {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 48px;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .check-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .check-item:first-child {
+      padding-top: 0;
+    }
+
+    .status-tag {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .item-body h4 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .item-body p {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+    }
+
+    /* Terminal Code Block */
+    .terminal-box {
+      background: #050811;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-top: 14px;
+      position: relative;
+    }
+
+    .terminal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 0.8rem;
+      color: #64748b;
+    }
+
+    .code-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.88rem;
+      color: #38bdf8;
+      word-break: break-all;
+      user-select: all;
+    }
+
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #e2e8f0;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+
+    /* Pipeline Flow */
+    .pipeline-wrapper {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 48px;
+    }
+
+    .steps-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      position: relative;
+    }
+
+    .step-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .step-num {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(99, 102, 241, 0.2);
+      color: #a5b4fc;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 0.9rem;
+      margin-bottom: 12px;
+    }
+
+    .step-box h5 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .step-box p {
+      font-size: 0.84rem;
+      color: var(--text-muted);
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding-top: 32px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      color: #64748b;
+      font-size: 0.9rem;
+    }
+
+    footer a {
+      color: var(--primary-light);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      h1 { font-size: 2.1rem; }
+      .container { padding: 30px 16px 60px; }
+      .download-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="glow-top"></div>
+  <div class="glow-bottom"></div>
+
+  <div class="container">
+    
+    <!-- Top Header -->
+    <header>
+      <div class="badge-wrap">
+        <span class="pulse-dot"></span>
+        <span class="badge-text">Beta Testing Channel • v3.7.17-beta</span>
+      </div>
+      <h1>FBVerse Bot Testing Lab</h1>
+      <p class="subtitle">
+        Experimental verification builds for testing Marketplace Location, Multi-Browser Concurrency, and Asynchronous Stop before official release rollout.
+      </p>
+
+      <!-- Isolation Notice -->
+      <div class="alert-banner">
+        <div class="alert-icon">🛡️</div>
+        <div class="alert-content">
+          <h4>Official Releases Are 100% Protected & Untouched</h4>
+          <p>
+            This testing channel operates completely isolated from production. The official release <strong>(v3.7.16)</strong> and Seller Edition remain live and stable. Standard users will NOT see this beta until you approve the rollout.
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <!-- Download Options Grid -->
+    <div class="download-grid">
+      
+      <!-- Card 1: Full Beta Setup -->
+      <div class="card primary-card">
+        <span class="card-badge">Full Package</span>
+        <div>
+          <div class="card-icon">🚀</div>
+          <h3>FBVerse Bot Beta Setup</h3>
+          <p class="desc">
+            Complete standalone installer wizard. Installs isolated test environment with new Playwright workers and non-blocking process management.
+          </p>
+        </div>
+        <div>
+          <div class="file-meta">
+            <span>💾 143 MB</span>
+            <span>🏷️ v3.7.17-beta</span>
+            <span>⚙️ Windows 10/11</span>
+          </div>
+          <a href="https://github.com/Msaqi1/fbverse-bot/releases/download/v3.7.17-beta/FBVerse_Bot_Beta_Setup.exe" class="btn btn-primary" style="width: 100%;">
+            <span>📥 Download Beta Setup (.exe)</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Card 2: Instant Micro-Patch -->
+      <div class="card">
+        <span class="card-badge" style="border-color: var(--accent); color: #67e8f9;">Instant OTA</span>
+        <div>
+          <div class="card-icon">⚡</div>
+          <h3>Instant Micro-Patch (ZIP)</h3>
+          <p class="desc">
+            Lightweight update for existing users. Automatically replaces automation scripts without needing to re-download the 140MB installer.
+          </p>
+        </div>
+        <div>
+          <div class="file-meta">
+            <span>💾 397 KB</span>
+            <span>⚡ Zero-Reinstall</span>
+            <span>📁 39 Scripts</span>
+          </div>
+          <a href="https://github.com/Msaqi1/fbverse-bot/releases/download/v3.7.17-beta/patch.zip" class="btn btn-secondary" style="width: 100%;">
+            <span>📥 Download Micro-Patch (.zip)</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Card 3: Switch to Stable Official -->
+      <div class="card">
+        <span class="card-badge" style="border-color: #10b981; color: #6ee7b7;">Production</span>
+        <div>
+          <div class="card-icon">🔒</div>
+          <h3>Official Stable Channel</h3>
+          <p class="desc">
+            Need the stable production version? Download the current verified release (v3.7.16) for daily operations and live clients.
+          </p>
+        </div>
+        <div>
+          <div class="file-meta">
+            <span>💾 129 MB</span>
+            <span>✅ Stable v3.7.16</span>
+            <span>👥 Live Users</span>
+          </div>
+          <a href="https://github.com/Msaqi1/fbverse-bot/releases/tag/v3.7.16-setup" class="btn btn-secondary" style="width: 100%;">
+            <span>🛡️ View Official Release (v3.7.16)</span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Quick Apply Terminal Snippet -->
+    <div class="test-checklist">
+      <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 10px;">⚡ One-Click Instant Patch for Existing PCs</h3>
+      <p style="font-size: 0.92rem; color: var(--text-muted);">
+        Run this command in Windows PowerShell to instantly apply the v3.7.17-beta hotfixes to your currently installed FBVerse Bot in 2 seconds:
+      </p>
+      
+      <div class="terminal-box">
+        <div class="terminal-header">
+          <span>POWERSHELL (ONE-LINER)</span>
+          <button class="copy-btn" onclick="copySnippet()">Copy Command</button>
+        </div>
+        <div class="code-text" id="cmd-snippet">
+          powershell -Command "iwr -Uri 'https://github.com/Msaqi1/fbverse-bot/releases/download/v3.7.17-beta/patch.zip' -OutFile \"$env:TEMP\patch.zip\"; Expand-Archive -Path \"$env:TEMP\patch.zip\" -DestinationPath \"$env:LOCALAPPDATA\FBVerse_Bot\patches\" -Force; Remove-Item \"$env:TEMP\patch.zip\"; Write-Host '✅ Beta Patch v3.7.17 Successfully Applied!' -ForegroundColor Green"
+        </div>
+      </div>
+    </div>
+
+    <!-- What Has Been Fixed in this Beta -->
+    <div class="test-checklist">
+      <h2 class="section-title">🧪 Test Objectives & Fixes in v3.7.17-beta</h2>
+
+      <!-- Item 1 -->
+      <div class="check-item">
+        <span class="status-tag">Ready To Test</span>
+        <div class="item-body">
+          <h4>1. Marketplace Browsing & Listing Location Change</h4>
+          <p>
+            <strong>Problem:</strong> Meta recently updated the Marketplace filter buttons from "Within" text to <code>City · Radius</code> (with middle dot <code>\u00b7</code>). Furthermore, listing forms require human keystrokes to trigger the React typeahead dropdown.
+            <br>
+            <strong>Test Action:</strong> Run "New Account Slow Listings" or "Marketplace Actions" with custom locations (e.g., <code>Houston, Texas</code> or <code>London</code>). Confirm that the location filter opens, types character-by-character, clicks the suggestion dropdown, and applies successfully.
+          </p>
+        </div>
+      </div>
+
+      <!-- Item 2 -->
+      <div class="check-item">
+        <span class="status-tag">Ready To Test</span>
+        <div class="item-body">
+          <h4>2. Multi-Browser Concurrency Stability (Anti-Crash & Hang)</h4>
+          <p>
+            <strong>Problem:</strong> Launching multiple browsers simultaneously caused memory exhaustion and child Chromium exceptions that would close the parent bot GUI.
+            <br>
+            <strong>Test Action:</strong> Launch 2 to 4 concurrent browser profiles. Monitor system memory. If an individual browser tab disconnects or closes, confirm that the main FBVerse Bot interface stays completely active, logs cleanly, and does not terminate.
+          </p>
+        </div>
+      </div>
+
+      <!-- Item 3 -->
+      <div class="check-item">
+        <span class="status-tag">Ready To Test</span>
+        <div class="item-body">
+          <h4>3. Instant Stop Button (Sub-250ms Termination)</h4>
+          <p>
+            <strong>Problem:</strong> Clicking the Stop button during heavy automation caused PyQt GUI threads to freeze into "Not Responding" while waiting for synchronous child joins.
+            <br>
+            <strong>Test Action:</strong> Start automation on multiple accounts, then click the <strong>STOP</strong> button. Confirm that the UI immediately resets to IDLE within 250 milliseconds and all orphaned Chrome instances are terminated asynchronously.
+          </p>
+        </div>
+      </div>
+
+      <!-- Item 4 -->
+      <div class="check-item">
+        <span class="status-tag">Verified</span>
+        <div class="item-body">
+          <h4>4. License Key Verification & Allowed Versions Check</h4>
+          <p>
+            <strong>Status:</strong> Google Sheets backend has been verified with <code>Allowed_Versions: 3.7.14, 3.7.15, 3.7.16, 3.7.17</code>. Keys such as <code>FBV-BAN6-KK8K-SLYL</code> authenticate immediately without false update blocks.
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Release Promotion Pipeline -->
+    <div class="pipeline-wrapper">
+      <h2 class="section-title">🔄 Professional Release Pipeline</h2>
+      <div class="steps-row">
+        
+        <div class="step-box">
+          <div class="step-num">1</div>
+          <h5>Beta Channel</h5>
+          <p>Deploy experimental hotfixes to <code>v3.7.17-beta</code>. Tested internally by administrator and QA.</p>
+        </div>
+
+        <div class="step-box">
+          <div class="step-num">2</div>
+          <h5>Verification Pass</h5>
+          <p>Validate that Marketplace Location, Concurrency, and Stop button operate with 100% reliability.</p>
+        </div>
+
+        <div class="step-box">
+          <div class="step-num">3</div>
+          <h5>Official Promotion</h5>
+          <p>Promote release tag to official <code>v3.7.17</code>. Live clients receive seamless OTA notification.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Direct Support Feedback -->
+    <div style="text-align: center; margin-bottom: 48px;">
+      <h3 style="font-size: 1.3rem; margin-bottom: 8px;">Found an Issue or Need Adjustments?</h3>
+      <p style="color: var(--text-muted); margin-bottom: 20px;">Direct line for beta feedback and immediate log inspection:</p>
+      <a href="https://wa.me/923455376447?text=Hello%20M%20Saqlain%2C%20I%20am%20testing%20FBVerse%20Bot%20v3.7.17-beta..." target="_blank" class="btn btn-secondary" style="border-color: #22c55e; color: #4ade80;">
+        <span>💬 Contact Lead Engineer via WhatsApp (+92 345 5376447)</span>
+      </a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>FBVerse Bot Automation Systems • Enterprise Edition & Testing Lab</p>
+      <p style="margin-top: 6px;">
+        <a href="https://github.com/Msaqi1/fbverse-bot/releases/tag/v3.7.17-beta" target="_blank">GitHub Release Page</a> • 
+        <a href="https://github.com/Msaqi1/fbverse-bot" target="_blank">Repository</a> • 
+        <a href="https://msaqi1.github.io/fbverse-bot/" target="_blank">Official Portal</a>
+      </p>
+    </footer>
+
+  </div>
+
+  <script>
+    function copySnippet() {
+      const code = document.getElementById('cmd-snippet').innerText.trim();
+      navigator.clipboard.writeText(code).then(() => {
+        const btn = document.querySelector('.copy-btn');
+        btn.innerText = 'Copied! ✅';
+        btn.style.background = '#10b981';
+        btn.style.borderColor = '#10b981';
+        setTimeout(() => {
+          btn.innerText = 'Copy Command';
+          btn.style.background = '';
+          btn.style.borderColor = '';
+        }, 2500);
+      });
+    }
+  </script>
+
+</body>
+</html>
